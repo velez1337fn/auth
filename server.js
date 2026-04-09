@@ -367,7 +367,9 @@ app.get('/api/get_script', (req, res) => {
     const source = req.headers['x-requested-from'];
     if (source !== 'EpilepticLoader') {
         return res.status(403).json({ error: 'Access denied: invalid source' });
-    });
+    }
+     // Далее отправляем скрипт клиенту
+    res.sendFile(path.join(__dirname, 'script.enc')); // пример
 });
 
 // Запуск сервера
