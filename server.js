@@ -363,35 +363,33 @@ const fs = require('fs');
 const path = require('path');
 
 app.get('/api/get_script', (req, res) => {
-    // 1. Проверяем секретный заголовок (браузер его не отправляет)
+    // 1. Проверяем секретный заголовок (защита от браузера)
     const source = req.headers['x-requested-from'];
     if (source !== 'EpilepticLoader') {
-        return res.status(403).send('Access denied: browser requests not allowed');
+        return res.status(403).json({ error: 'Access denied: invalid source' });
     }
 
-    // 2. Проверяем, что переданы key и hwid
     const { key, hwid } = req.query;
     if (!key || !hwid) {
         return res.status(400).json({ error: 'Missing key or hwid' });
     }
 
-    // 3. Валидируем ключ в базе
     const keyData = keysDatabase[key];
     if (!keyData) {
-        return res.status(403).json({ error: 'Invalid key' });
+        return res.status(400).json({ error: 'Invalid key' });
     }
 
-    // 4. Проверяем, что HWID совпадает (если ключ уже активирован)
+    // Если ключ уже активирован на другом HWID – запрещаем
     if (keyData.hwid && keyData.hwid !== hwid) {
-        return res.status(403).json({ error: 'Key not activated for this HWID' });
+        return res.status(400).json({ error: 'Key already used on another PC' });
     }
 
-    // 5. Проверяем, не истёк ли ключ
+    // Если ключ имеет срок и истёк – запрещаем
     if (keyData.expiresAt && new Date(keyData.expiresAt) < new Date()) {
-        return res.status(403).json({ error: 'Key expired' });
+        return res.status(400).json({ error: 'Key expired' });
     }
 
-    // 6. Всё ок – отдаём скрипт
+    // Всё ок – отдаём скрипт
     const filePath = path.join(__dirname, 'script.enc');
     fs.readFile(filePath, (err, data) => {
         if (err) {
