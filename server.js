@@ -367,37 +367,6 @@ app.get('/api/get_script', (req, res) => {
     const source = req.headers['x-requested-from'];
     if (source !== 'EpilepticLoader') {
         return res.status(403).json({ error: 'Access denied: invalid source' });
-    }
-
-    const { key, hwid } = req.query;
-    if (!key || !hwid) {
-        return res.status(400).json({ error: 'Missing key or hwid' });
-    }
-
-    const keyData = keysDatabase[key];
-    if (!keyData) {
-        return res.status(400).json({ error: 'Invalid key' });
-    }
-
-    // Если ключ уже активирован на другом HWID – запрещаем
-    if (keyData.hwid && keyData.hwid !== hwid) {
-        return res.status(400).json({ error: 'Key already used on another PC' });
-    }
-
-    // Если ключ имеет срок и истёк – запрещаем
-    if (keyData.expiresAt && new Date(keyData.expiresAt) < new Date()) {
-        return res.status(400).json({ error: 'Key expired' });
-    }
-
-    // Всё ок – отдаём скрипт
-    const filePath = path.join(__dirname, 'script.enc');
-    fs.readFile(filePath, (err, data) => {
-        if (err) {
-            console.error('Script file missing:', err);
-            return res.status(404).json({ error: 'Script not found on server' });
-        }
-        res.setHeader('Content-Type', 'application/octet-stream');
-        res.send(data);
     });
 });
 
