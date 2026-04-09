@@ -358,8 +358,6 @@ app.post('/api/admin/reset-hwids', (req, res) => {
     });
 });
 
-const fs = require('fs');
-const path = require('path');
 
 const fs = require('fs');
 const path = require('path');
